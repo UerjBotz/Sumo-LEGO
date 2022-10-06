@@ -1,2 +1,2 @@
-# Sumo-LEGO
-Sumo lego ne
+# Sumo LEGO
+Sumo lego ne :.

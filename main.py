@@ -12,7 +12,7 @@ from time import time
 
 EDGE_THRESHOLD = 5
 ENEMY_DISTANCE = 100
-SPEED_RUN = 30  # Power %
+SPEED_RUN = 100  # Power %
 SPEED_SEARCH = 360  # Deg/s
 
 ev3 = EV3Brick()
@@ -53,7 +53,7 @@ def check_boundaries():
             # Back away from the edge
             motor_L.dc(-SPEED_RUN)
             motor_R.dc(-SPEED_RUN)
-            wait(500)
+            wait(100)
 
             # Rotate away from the edge, depending on which sensor got triggered
             '''if abs(value_L-ground_colour) >= abs(value_R-ground_colour):
@@ -61,7 +61,6 @@ def check_boundaries():
             else:
                 motor_R.dc(SPEED_RUN)
             '''
-            wait(500)
             motor_L.stop(Stop.BRAKE)
             motor_R.stop(Stop.BRAKE)
 
@@ -81,6 +80,8 @@ sensor_D = UltrasonicSensor(Port.S2) #INFRAVERMELHO
 timer = StopWatch()
 ground_colour = 0
 turn_right = 0
+velRotate = SPEED_SEARCH*turn_right
+velRotateother = - (SPEED_SEARCH* int(not turn_right))
 roam_enabled = True  # Global flag to enable/disable the roaming behaviour
 random.seed(int(time()*1000))
 turn_right = random.randint(0, 1)
@@ -113,8 +114,8 @@ while roam_enabled == False:
 while True:
     if roam_enabled:
         timer.reset()
-        motor_L.run(SPEED_SEARCH*turn_right)
-        motor_R.run(SPEED_SEARCH*int(not turn_right))
+        motor_L.run(SPEED_RUN)
+        motor_R.run(-SPEED_RUN)
         ev3.light.on(Color.GREEN)
         # print("distance", sensor_D.distance())
         while timer.time() < random.randint(1, 3)*2000 and roam_enabled:

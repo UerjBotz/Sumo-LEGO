@@ -35,6 +35,9 @@ def lower_wedge():
     # Lift the wedge just a bit to avoid dragging it on the floor and losing traction
     motor_W.run_angle(speed=500, rotation_angle=-10, then=Stop.HOLD, wait=False)
 
+# Acionará a tração para frente na estratégia de defesa -> indo para ataque
+def engage_traction():
+    motor_W.run(SPEED_RUN)
 
 def check_boundaries():
     # Continuously check if the boundary is reached, and, if so, blocks the other behaviours and moves away from it
@@ -47,13 +50,18 @@ def check_boundaries():
     while True:
         value_L = sensor_L.reflection()
         print("Edge detected!", ground_colour, value_L)
+        
         # value_R = sensor_R.reflection()
         if abs(value_L - ground_colour) >= EDGE_THRESHOLD:
             roam_enabled = False  # Stop the other behaviours
             print("Edge detected!", ground_colour, value_L)
+
             ev3.light.on(Color.YELLOW)
             #ev3.screen.load_image("images/cat_afraid.png")
-
+            
+            # Semd this bitch upwards when contacted
+            engage_traction()
+            
             # Back away from the edge
             motor_L.dc(SPEED_RUN)
             motor_R.dc(SPEED_RUN)
@@ -73,11 +81,11 @@ def check_boundaries():
             print("Roaming again")
         wait(10)
 
-
 # Initialisation
-motor_L = Motor(Port.B, Direction.COUNTERCLOCKWISE)#Esquerda
-motor_R = Motor(Port.A, Direction.COUNTERCLOCKWISE)#Direita
-motor_W = Motor(Port.C)
+motor_L = Motor(Port.A, Direction.CLOCKWISE)  # Direita
+motor_R = Motor(Port.B, Direction.CLOCKWISE)  # Esquerda
+motor_W = Motor(Port.C, Direction.COUNTERCLOCKWISE)  # Tração
+
 sensor_L = ColorSensor(Port.S1) # ESQUERDA
 #sensor_R = ColorSensor(Port.S2) # DIREITA
 sensor_D = UltrasonicSensor(Port.S2) #INFRAVERMELHO # Esquerda
@@ -119,30 +127,25 @@ while roam_enabled == False:
 while True:
     if roam_enabled:
         timer.reset()
-        motor_L.run(SPEED_RUN) # sentido antihorario
-        motor_R.run(-SPEED_RUN)
+        motor_L.run(SPEED_RUN)  # Sentido horário
+        motor_R.run(SPEED_RUN)  # Sentido anti-horário
         ev3.light.on(Color.GREEN)
-        # print("distance", sensor_D.distance())
+        
         while timer.time() < random.randint(1, 3)*2000 and roam_enabled:
-    
             if sensor_D.distance() <= ENEMY_DISTANCE and sensor_E.distance() > ENEMY_DISTANCE:
-                print("ENEMY!", sensor_D.distance())
-                # Enemy found: full speed ahead
-                motor_L.run(SPEED_RUN) # sentido antihorario
-                motor_R.run(-SPEED_RUN)
+                print("ENEMY detectado!", sensor_D.distance())
+                # Comportamento para lidar com inimigo
                 ev3.light.on(Color.RED)
             elif sensor_D.distance() > ENEMY_DISTANCE and sensor_E.distance() <= ENEMY_DISTANCE:
-                print("ENEMY!", sensor_D.distance())
-                # Enemy found: full speed ahead
-                motor_L.run(-SPEED_RUN) # sentido horario
-                motor_R.run(SPEED_RUN)
+                print("ENEMY detectado!", sensor_D.distance())
+                # Comportamento para lidar com inimigo
                 ev3.light.on(Color.RED)
             elif sensor_D.distance() <= ENEMY_DISTANCE and sensor_E.distance() <= ENEMY_DISTANCE:
-                print("ENEMY!", sensor_D.distance())
-                # Enemy found: full speed ahead
-                motor_L.run(-SPEED_RUN) # sentido horario
-                motor_R.run(-SPEED_RUN)
+                print("ENEMY detectado!", sensor_D.distance())
+                # Comportamento para lidar com inimigo
                 ev3.light.on(Color.RED)
             wait(10)
-        turn_right = int(not turn_right)  # Now turn the other way
+        
+        # Trocar a direção após o tempo determinado
+        turn_right = int(not turn_right)
         wait(10)

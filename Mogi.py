@@ -1,9 +1,13 @@
 #!/usr/bin/env pybricks-micropython
+from threading import Thread
+from time import time
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, ColorSensor,UltrasonicSensor,TouchSensor)
 from pybricks.parameters import (Port,Stop, Direction, Align, Color)
 from pybricks.robotics import DriveBase
 from pybricks.tools import print, wait, StopWatch
+import random
+from random import *
 ev3 = EV3Brick()
 
 # Definir os motores
@@ -32,7 +36,8 @@ while touch.pressed() == False:
     pass
 for i in range(5):
         wait(900) ; ev3.speaker.beep(frequency=1000, duration=100)
-def check_boundaries()
+
+def check_boundaries():
     global line_detected
     while True:
         value_ground = sensor_color.reflection()

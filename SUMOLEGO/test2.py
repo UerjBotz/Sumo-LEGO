@@ -16,6 +16,7 @@ from time import time
 EDGE_THRESHOLD = 20  # Increased to better detect black vs white
 ENEMY_DISTANCE = 100
 SPEED_RUN = 100  # Power %
+SPEED_ATTACK = 200  # Increased speed for attacking
 GROUND_COLOR_BLACK = 10  # Example reflection value for black
 GROUND_COLOR_WHITE = 85  # Example reflection value for white
 
@@ -34,7 +35,7 @@ def lower_wedge():
     motor_W.run_angle(speed=500, rotation_angle=-10, then=Stop.HOLD, wait=False)
 
 def engage_traction():
-    motor_W.run(SPEED_RUN)
+    motor_W.run(SPEED_ATTACK)
 
 def check_boundaries():
     global roam_enabled
@@ -44,8 +45,8 @@ def check_boundaries():
             roam_enabled = False  # Stop the other behaviours
             ev3.light.on(Color.YELLOW)
             # Back away from the edge
-            motor_L.dc(SPEED_RUN)
-            motor_R.dc(SPEED_RUN)
+            motor_L.dc(-SPEED_RUN)
+            motor_R.dc(-SPEED_RUN)
             wait(100)
             motor_L.stop(Stop.BRAKE)
             motor_R.stop(Stop.BRAKE)
@@ -59,19 +60,21 @@ def main_behavior():
         if roam_enabled:
             timer.reset()
             motor_L.run(SPEED_RUN)
-            motor_R.run(-SPEED_RUN)
+            motor_R.run(SPEED_RUN)
             ev3.light.on(Color.GREEN)
             while timer.time() < random.randint(1, 3) * 2000 and roam_enabled:
                 # Check for enemy presence
-                if sensor_D.distance() <= ENEMY_DISTANCE:
+                distance = sensor_D.distance()
+                if distance <= ENEMY_DISTANCE:
+                    ev3.speaker.beep(frequency=1000, duration=100)  # Beep when detecting an enemy
                     engage_traction()
-                    motor_L.run(SPEED_RUN)
-                    motor_R.run(-SPEED_RUN)
+                    motor_L.run(SPEED_ATTACK)  # Increase speed
+                    motor_R.run(SPEED_ATTACK)  # Increase speed
                     ev3.light.on(Color.RED)
-                elif sensor_D.distance() <= 50:
+                elif distance <= 50:
                     turn_right()
                     ev3.light.on(Color.RED)
-                elif sensor_D.distance() <= 150:
+                elif distance <= 150:
                     turn_left()
                     ev3.light.on(Color.RED)
                 wait(10)
@@ -83,16 +86,16 @@ def color_based_movement():
         reflection = sensor_L.reflection()
         if reflection <= GROUND_COLOR_BLACK + EDGE_THRESHOLD:
             motor_L.run(SPEED_RUN)
-            motor_R.run(-SPEED_RUN)
+            motor_R.run(SPEED_RUN)
         elif reflection >= GROUND_COLOR_WHITE - EDGE_THRESHOLD:
             motor_L.stop(Stop.BRAKE)
             motor_R.stop(Stop.BRAKE)
             wait(100)
             motor_L.run(-SPEED_RUN)
-            motor_R.run(SPEED_RUN)
+            motor_R.run(-SPEED_RUN)
             wait(100)
             motor_L.run(SPEED_RUN)
-            motor_R.run(-SPEED_RUN)
+            motor_R.run(SPEED_RUN)
         wait(10)
 
 # MODIFICAÇÃO: Função para virar à direita
@@ -106,8 +109,8 @@ def turn_left():
     motor_R.run_angle(speed=500, rotation_angle=90, then=Stop.HOLD, wait=True)
 
 # Initialisation
-motor_L = Motor(Port.B, Direction.CLOCKWISE) # Esquerda
-motor_R = Motor(Port.A, Direction.CLOCKWISE) # Direita
+motor_L = Motor(Port.B, Direction.COUNTERCLOCKWISE) # Esquerda
+motor_R = Motor(Port.A, Direction.COUNTERCLOCKWISE) # Direita
 motor_W = Motor(Port.C, Direction.COUNTERCLOCKWISE) # Tração (Wedge)
 sensor_L = ColorSensor(Port.S1) # Sensor de cor esquerda
 sensor_D = UltrasonicSensor(Port.S2) # Sensor ultrassônico
@@ -139,7 +142,7 @@ Thread(target=check_boundaries).start()  # Begin edge detection
 Thread(target=main_behavior).start()  # Start the main behavior
 Thread(target=color_based_movement).start()  # Start color based movement
 
-motor_L.dc(-SPEED_RUN)
-motor_R.dc(-SPEED_RUN)
+motor_L.dc(SPEED_RUN)
+motor_R.dc(SPEED_RUN)
 while roam_enabled == False:
     pass  # Wait for the edge detection to detect the edge before starting the main behaviour

@@ -56,6 +56,7 @@ def check_boundaries():
 
 def main_behavior():
     global roam_enabled, turn_right
+    color = sensor_L.color()
     while True:
         if roam_enabled:
             timer.reset()
@@ -64,7 +65,16 @@ def main_behavior():
             ev3.light.on(Color.GREEN)
             while timer.time() < random.randint(1, 3) * 2000 and roam_enabled:
                 # Check for enemy presence
+                # Check for enemy presence
                 distance = sensor_D.distance()
+                # Check the direction of the enemy
+                motor_L.run(SPEED_RUN)
+                wait(500)
+                distance_left = sensor_D.distance()
+                motor_R.run(SPEED_RUN)
+                wait(500)
+                distance_right = sensor_D.distance()
+                print("Color sensor: ", color)
                 if distance <= ENEMY_DISTANCE:
                     ev3.speaker.beep(frequency=1000, duration=100)  # Beep when detecting an enemy
                     engage_traction()
@@ -77,6 +87,8 @@ def main_behavior():
                 elif distance <= 150:
                     turn_left()
                     ev3.light.on(Color.RED)
+                elif distance_left < distance_right:
+                    turn_right = False
                 wait(10)
             turn_right = int(not turn_right)  # Now turn the other way
             wait(10)
@@ -109,8 +121,8 @@ def turn_left():
     motor_R.run_angle(speed=500, rotation_angle=90, then=Stop.HOLD, wait=True)
 
 # Initialisation
-motor_L = Motor(Port.B, Direction.COUNTERCLOCKWISE) # Esquerda
-motor_R = Motor(Port.A, Direction.COUNTERCLOCKWISE) # Direita
+motor_L = Motor(Port.B, Direction.CLOCKWISE) # Esquerda
+motor_R = Motor(Port.A, Direction.CLOCKWISE) # Direita
 motor_W = Motor(Port.C, Direction.COUNTERCLOCKWISE) # Tração (Wedge)
 sensor_L = ColorSensor(Port.S1) # Sensor de cor esquerda
 sensor_D = UltrasonicSensor(Port.S2) # Sensor ultrassônico

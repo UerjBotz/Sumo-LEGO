@@ -16,9 +16,9 @@ import random
 from time import time
 
 EDGE_THRESHOLD = 5
-ENEMY_DISTANCE = 150
+ENEMY_DISTANCE = 400
 SPEED_RUN = 100  # Power 
-SPEED_SEARCH = 360  # Deg/s
+SPEED_SEARCH = 720  # Deg/s
 
 ev3 = EV3Brick()
 
@@ -67,11 +67,10 @@ def checarBordas():
 motor_L = Motor(Port.B, Direction.CLOCKWISE)#Esquerda
 motor_R = Motor(Port.A, Direction.CLOCKWISE)#Direita
 motor_tracao = Motor(Port.C, Direction.COUNTERCLOCKWISE)
-
+timer = StopWatch()
 sensor_cor = ColorSensor(Port.S1) # ESQUERDA
 sensor_enemy = UltrasonicSensor(Port.S2) #Ultrasonico # Esquerda
 
-timer = StopWatch()
 cor_chao = 0
 andar = True  # Global flag to enable/disable the roaming behaviour
 
@@ -123,6 +122,18 @@ while True:
                 motor_R.dc(SPEED_RUN)
                 motor_tracao.dc(SPEED_RUN)
                 ev3.light.on(Color.RED)
+            # if stopped dectecting the enemy, stop the motors
+            if sensor_enemy.distance() > ENEMY_DISTANCE:
+                motor_L.stop(Stop.BRAKE)
+                motor_R.stop(Stop.BRAKE)
+                motor_tracao.stop(Stop.BRAKE)
+                ev3.light.off()
+            # search for the enemy if it's not in front of the robot, increase the time of rotation
+            if sensor_enemy.distance() > ENEMY_DISTANCE:
+                motor_L.dc(SPEED_SEARCH*turn_right)
+                motor_R.dc(-SPEED_SEARCH*turn_right)
+                #motor_tracao.dc(SPEED_RUN)
+                ev3.light.on(Color.ORANGE)
             wait(10)
         turn_right = int(not turn_right)  # Now turn the other way
         wait(10)

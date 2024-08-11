@@ -44,8 +44,8 @@ class Estado:
 
 #constantes
 STATUS_INICIAL = Estado.PROCURANDO
-VEL_CORRE = 100 #Power
-VEL_PROCURA = 900 #Deg/s
+VEL_CORRE = 100 #porcentagem
+VEL_PROCURA = 40 
 
 COR_ARENA = 6 #branco
 COR_BORDA = 5 #vermelho
@@ -59,31 +59,35 @@ while True:
     if status == Estado.PROCURANDO:
         if color_sensor_in1.color == COR_ARENA: 
             if to_vendo_inimigo():
+                tank_drive.stop()
+                time.sleep(0.1)
                 status = Estado.ATACANDO
         elif color_sensor_in1.color == COR_BORDA:
+            tank_drive.stop()
             status = Estado.AFASTANDO
         
     elif status == Estado.ATACANDO:
         if color_sensor_in1.color == COR_ARENA:
             if not to_vendo_inimigo():
+                tank_drive.stop()
                 status = Estado.PROCURANDO
         elif color_sensor_in1.color == COR_BORDA:
+            tank_drive.stop()
             status = Estado.AFASTANDO
         
     elif status == Estado.AFASTANDO:
         if color_sensor_in1.color == COR_ARENA:
+            tank_drive.stop()
             status = Estado.PROCURANDO
     
     #define ação
     if status == Estado.PROCURANDO:
-        left_motor.on(-VEL_CORRE/4)
-        right_motor.on(VEL_CORRE/4)
+        tank_drive.on(VEL_PROCURA, -VEL_PROCURA)
+
         
     elif status == Estado.ATACANDO:
-        left_motor.on(VEL_CORRE)
-        right_motor.on(VEL_CORRE)
+        tank_drive.on(VEL_CORRE, VEL_CORRE)
+
         
     elif status == Estado.AFASTANDO:
-        left_motor.on(-VEL_CORRE/4)
-        right_motor.on(-VEL_CORRE/4)
-        time.sleep(1)
+        tank_drive.on(-VEL_CORRE, -VEL_CORRE)

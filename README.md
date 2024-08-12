@@ -1,5 +1,5 @@
 # Sumo LEGO
-### Escrito por Argos A. Maia
+### Escrito por <a href="github.com/argosmaia">Argos Maia</a>, <a href="github.com/arthuraguiar032">Arthur Aguiar</a> e <a href="github.com/KaioMath">Kaio Fernandes</a>.
 
 1. *Constantes*
    - **EDGE_THRESHOLD**:
